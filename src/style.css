@@ -40,9 +40,9 @@ font-family: "Almendra", serif;
 }
 
 .loadingScreen__board {
-padding: 20%;
+padding: 32px;
 background-color: rgb(0, 0, 0);
-border-radius: 10%;
+border-radius: 12px;
 text-align: center;
 border: dashed 6px rgb(255, 255, 255);
 transition: opacity 0.4s;
@@ -94,8 +94,8 @@ cursor: pointer;
 }
 
 .imageTrain {
-  width: 600px; /* or 50% */
-  height: auto; /* maintains aspect ratio */
+  width: 50%; 
+  height: auto; 
 }
 
 .loadingScreen__button:disabled {
