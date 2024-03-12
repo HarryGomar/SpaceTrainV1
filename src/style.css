@@ -48,31 +48,34 @@ border: dashed 6px rgb(255, 255, 255);
 transition: opacity 0.4s;
 }
 
+
 .loadingScreen__title {
-font-size: 4rem;
-color: rgb(255, 255, 255);
-margin: 0;
-margin-bottom: 8px;
+  font-size: calc(2rem + 1.5vw); /* Adjusts base size + a percentage of the viewport width */
+  color: rgb(255, 255, 255);
+  margin: 0;
+  margin-bottom: 8px;
 }
 
 .loadingScreen__desc {
-  font-size: 2rem;
+  font-size: calc(1rem + 1vw); /* Slightly smaller than the title but still adjusts with screen size */
   color: rgb(185, 171, 171);
   margin: 0;
   margin-bottom: 8px;
 }
-.loadingScreen__desc2 {
-  font-size: 1rem;
+
+.loadingScreen__desc2, .loadingScreen__desc3 {
+  font-size: calc(0.8rem + 0.5vw); /* Even smaller, but still responsive */
   color: rgb(185, 171, 171);
   margin: 0;
   margin-bottom: 8px;
 }
+
 .loadingScreen__desc3 {
-  font-size: 1rem;
-  color: rgb(185, 171, 171);
-  margin: 0;
+  margin-bottom: 0; /* Keeps the original margin-bottom for desc3 */
 }
-  
+
+
+
 
 .loadingScreen__button {
 padding: 8px 32px;
