@@ -46,6 +46,7 @@ border-radius: 12px;
 text-align: center;
 border: dashed 6px rgb(255, 255, 255);
 transition: opacity 0.4s;
+width: 80vh;
 }
 
 
@@ -97,7 +98,7 @@ cursor: pointer;
 }
 
 .imageTrain {
-  width: 30%; 
+  width: 80%; 
   height: auto; 
 }
 

@@ -24,14 +24,13 @@ const App = () => {
                     position: [-3, 1, 4],
                 }}
             >
-
                 <Suspense fallback={null}> 
                      <Experience />
                 </Suspense>
-
             </Canvas>
             
             <LoadingScreen started={start} onStarted={() => setStart(true)} />
+            
         </KeyboardControls>
     );
 };
