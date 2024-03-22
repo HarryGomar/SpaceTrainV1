@@ -18,7 +18,7 @@ export const LoadingScreen = ({ started, onStarted }) => {
         
         <img src="./TrainPixel.png" className="imageTrain" alt="" />
 
-        <h2 className="loadingScreen__desc"> Movement Controls Inside Train: W - Forwards | S - Backwards </h2>
+        <h2 className="loadingScreen__desc"> Movement Controls Inside Train: \n W - ↑ \n S - ↓ </h2>
 
         <button
           className="loadingScreen__button"
