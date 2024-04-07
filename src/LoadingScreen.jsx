@@ -27,7 +27,7 @@ export const LoadingScreen = ({ started, onStarted }) => {
         >
           Start
         </button>
-        <h4 className="loadingScreen__desc2">(Currently no FULL mobile support)</h3>
+        <h4 className="loadingScreen__desc2">(Currently no FULL mobile support)</h4>
 
         
       </div>
