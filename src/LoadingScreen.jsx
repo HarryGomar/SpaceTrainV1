@@ -17,11 +17,9 @@ export const LoadingScreen = ({ started, onStarted }) => {
         <h1 className="loadingScreen__title">SPACE TRAIN V1.0</h1>
         
         <img src="./TrainPixel.png" className="imageTrain" alt="" />
-
         <h3 className="loadingScreen__desc"> Movement Controls Inside Train: </h3>
         <h3 className="loadingScreen__desc"> ↑ - W  </h3>
         <h3 className="loadingScreen__desc"> ↓ - S </h3>
-
         <button
           className="loadingScreen__button"
           disabled={progress < 100}
@@ -29,8 +27,7 @@ export const LoadingScreen = ({ started, onStarted }) => {
         >
           Start
         </button>
-
-
+        <h4 className="loadingScreen__desc2">(Currently no FULL mobile support)</h3>
 
         
       </div>
