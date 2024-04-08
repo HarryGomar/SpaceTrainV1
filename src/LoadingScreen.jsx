@@ -18,8 +18,7 @@ export const LoadingScreen = ({ started, onStarted }) => {
         
         <img src="./TrainPixel.png" className="imageTrain" alt="" />
         <h4 className="loadingScreen__desc2"> Movement Controls Inside Train: </h4>
-        <h4 className="loadingScreen__desc2"> ↑ - W  </h4>
-        <h4 className="loadingScreen__desc2"> ↓ - S </h4>
+        <h4 className="loadingScreen__desc2"> ↑ - W  | ↓ - S </h4>
         <button
           className="loadingScreen__button"
           disabled={progress < 100}
