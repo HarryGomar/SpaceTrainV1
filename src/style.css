@@ -11,7 +11,7 @@ body,
 /* Custom Font Face */
 @font-face {
   font-family: 'LMono';
-  src: url('./lmmono10-regular.otf') format('opentype');
+  src: url(./font/lmmono10-regular.otf) format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap; 
