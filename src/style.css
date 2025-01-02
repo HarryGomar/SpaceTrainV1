@@ -1,218 +1,323 @@
+/* Root/body settings */
 html,
 body,
-#root
-{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: ivory;
-}
-
 #root {
-    width: 100vw;
-    height: 100vh;
-    background-color: #003107;
-    background-image: linear-gradient(147deg, #000000 0%, #190035 100%);
-  }
-
-body {
-margin: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
 }
 
+/* Custom Font Face */
+@font-face {
+  font-family: 'LMono';
+  src: url('./Fonts/lmmono10-regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; 
+}
+
+
+
+/* Inverted Colors: Background is now black, text is white */
+body {
+  overflow-y: auto; 
+  background: #000; /* Changed from ivory to black */
+  color: #fff; /* Changed text color to white */
+  font-family: 'LMono'; 
+}
+
+/* Existing .loadingScreen styles */
 .loadingScreen {
   position: fixed;
   top: 0;
   left: 0;
-  bottom: 0;
   right: 0;
-  background-color: inherit;
-  background-image: inherit;
+  bottom: 0; /* Ensure it covers the entire viewport */
+  min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center; /* Center vertically */
+  background-color: #000; /* Black background */
+  color: #fff; /* White text */
+  z-index: 999;
   transition: opacity 0.8s ease-in-out;
-  z-index: 1;
-  font-family: "Almendra", serif;
-  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Allow vertical scrolling */
+
+  /* Hide scrollbar for IE, Edge */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  
+  /* Hide scrollbar for Firefox */
+  scrollbar-width: none; /* Firefox */
 }
 
-.loadingScreen__progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 12px;
+.loadingScreen::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
-.loadingScreen__progress__value {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background-color: rgb(255, 255, 255);
-  transition: width 0.4s ease;
-}
-
-.loadingScreen__board {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 32px;
-  background-color: rgba(0, 0, 0, 0.85); 
-  border-radius: 12px;
-  text-align: center;
-  transition: opacity 0.4s;
-  width: 90vw;
-  max-width: 1200px;
-  height: 80vh;
-  max-height: 800px;
-}
-
-.loadingScreen__header {
-  margin-bottom: 20px;
-}
-
-.loadingScreen__title {
-  font-size: calc(2rem + 1.5vw);
-  color: #FFFFFF;
-  margin: 0;
-  text-align: center;
-}
-
-.loadingScreen__content {
-  display: flex;
-  justify-content: space-around;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: center; 
-}
-
-.loadingScreen__feature {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1 1 250px;
-  margin: 10px;
-  padding: 10px;
-  background-color: transparent; 
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.loadingScreen__feature:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.loadingScreen__feature__image {
-  width: 100%;
-  height: auto;
-  max-height: 450px; 
-  border: 2px solid #FFFFFF; 
-  border-radius: 8px;
-  box-sizing: border-box; 
-}
-
-.loadingScreen__feature__title {
-  font-size: calc(1.2rem + 1vw);
-  color: #FFFFFF;
-  margin: 0;
-  margin-top: 20px;
-  margin-bottom: 8px;
-}
-
-.loadingScreen__feature__description {
-  font-size: calc(1rem + 0.5vw);
-  color: #B9ABAB;
-  text-align: center;
-  margin: 0;
-}
-
-.loadingScreen__footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.loadingScreen__button {
-  padding: 12px 40px;
-  background-color: #302E31;
-  color: #FFFFFF;
-  border: none;
-  font-weight: bold;
-  font-size: 1.8rem;
-  border-radius: 8px;
-  transition: background-color 0.3s, transform 0.3s;
-  cursor: pointer;
-  font-family: "Almendra", serif;
-}
-
-.loadingScreen__button:hover:not(:disabled) {
-  background-color: #000000;
-  transform: scale(1.05);
-}
-
-.loadingScreen__button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .loadingScreen--started {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.8s ease-in-out;
 }
 
-.loadingScreen--started .loadingScreen__board {
-  opacity: 0;
+
+.loadingScreen__board {
+  margin: auto; 
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
 }
 
-@media (max-width: 1024px) {
-  .loadingScreen__board {
-    width: 95vw;
-    height: 85vh;
+/* Progress Bar */
+.loadingScreen__progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  background: #000000; /* Changed from transparent to white */
+  z-index: 1000; /* Ensure the button stays above other elements */
+
+}
+
+.loadingScreen__progress__value {
+  background-color: #fff; /* Changed from #000 to white */
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.loadingScreen__header {
+  margin-top: 5rem; /* Maintain existing margin */
+  display: flex;
+  flex-wrap: nowrap; 
+  justify-content: space-between; /* Distribute space evenly */
+  align-items: center; /* Vertically center the items */
+  width: 80%;
+  box-sizing: border-box; /* Ensure padding is included in width */
+  margin-bottom: 0.5rem; /* Maintain existing margin */
+  gap: 10px;
+}
+
+/* Logo Section: 25% width */
+.loadingScreen__logo {
+  flex: 0 0 25%;
+  margin-left: -3rem; /* Maintain existing margin */
+  display: flex;
+  align-items: center; /* Vertically center the logo */
+}
+
+/* Intro Section: 50% width */
+.loadingScreen__intro {
+  flex: 0 0 50%;
+  text-align: left; /* Align text to the left */
+  padding: 0 20px; /* Optional: Add horizontal padding for better readability */
+}
+
+/* Description Section: 25% width */
+.loadingScreen__desc {
+  flex: 0 0 25%;
+  display: flex;
+  flex-direction: column;       /* Stack items vertically */
+  align-items: flex-start;        /* Align items to the right */
+  justify-content: bottom;      /* Center items vertically within the div */
+  gap: 0.5em;                    /* Optional: Adds space between the button and paragraph */
+}
+
+.loadingScreen__button {
+  padding: 10px 30px;
+  font-family: 'LMono'; /* Explicitly set the font family */
+  background-color: #000; /* Black background when disabled */
+  color: #fff; /* White text when disabled */
+  border: none;
+  border-bottom: 2px solid #fff; /* White border at the bottom when disabled */
+  border-right: 2px solid #fff; /* White border at the bottom when disabled */
+  font-weight: bold;
+  font-size: 0.8em;
+  cursor: not-allowed; /* Disabled cursor */
+  transition: background-color 0.3s, border-bottom 0.3s, color 0.3s;
+  z-index: 1000; /* Ensure the button stays above other elements */
+}
+
+.loadingScreen__button--enabled {
+  background-color: #fff; /* White background when enabled */
+  color: #000; /* Black text when enabled */
+  border-bottom: 2px solid #000; /* Black border at the bottom when enabled */
+  cursor: pointer; /* Pointer cursor when enabled */
+}
+
+.loadingScreen__button:hover:not(:disabled) {
+  background-color: #ccc; /* Lighter on hover */
+}
+
+.loadingScreen__button:disabled {
+  cursor: not-allowed; /* Ensure cursor remains not-allowed when disabled */
+}
+
+.loadingScreen__startDescription {
+  margin-top: 0; /* Remove top margin if using gap */
+  color: #ccc; /* Lighter color for description */
+}
+
+.loadingScreen__logo img {
+  width: 100%;
+  height: auto;
+}
+
+.loadingScreen__intro {
+  flex: 0 0 50%;
+  text-align: left; /* Align text to the left for better readability */
+  padding: 0 20px; /* Optional: Adds padding on the sides */
+  box-sizing: border-box;
+}
+
+/* Title Styling */
+.loadingScreen__title {
+  font-size: 2rem;
+  margin: 0 0 1rem 0;
+  color: #fff;
+}
+
+/* Start Section */
+.loadingScreen__startSection {
+  text-align: center; /* Center the start section */
+  margin-bottom: 2rem;
+}
+
+.loadingScreen__startDescription {
+  margin-top: 1rem;
+  color: #ccc; /* Lighter color for description */
+}
+
+/* Divider */
+.loadingScreen__divider {
+  width: 80%;
+  border: 0;
+  border-top: 10px dotted #fff; /* Changed from solid to dotted */
+  margin: 2rem 0;
+}
+
+.loadingScreen__works{
+  width: 80%;
+}
+
+
+/* Works section */
+.loadingScreen__worksTitle {
+  font-size: 1.5rem;
+  margin: 0rem 0;
+  margin-bottom: 1rem;
+  text-align: center; /* Center the title */
+}
+
+
+.loadingScreen__worksGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Three columns */
+  gap: 20px; /* Space between grid items */
+  justify-content: center; /* Center the grid within its container */
+  max-width: 900px; /* Optional: Limit the maximum width to ensure centering */
+  margin: 0 auto; /* Center the grid container */
+  width: 100%; /* Ensure it takes full available width up to max-width */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* Stack vertically on smaller screens */
+@media (max-width: 900px) {
+  .loadingScreen__worksGrid {
+    grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens */
   }
+}
 
-  .loadingScreen__feature__image {
-    max-height: 220px;
+@media (max-width: 600px) {
+  .loadingScreen__worksGrid {
+    grid-template-columns: 1fr; /* Single column for small screens */
   }
 }
+
+.loadingScreen__feature__title
+{
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.loadingScreen__workItem {
+  border: 1px solid #fff; /* White border */
+  padding: 10px;
+  font-size: 1.5rem;
+  text-align: center;
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth hover effects */
+  background: #111; /* Dark background */
+  box-sizing: border-box; /* Include padding and border in width */
+
+}
+
+.loadingScreen__workItem img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+/* Hover Effect */
+.loadingScreen__workItem:hover {
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3); /* Enhanced shadow */
+  transform: translateY(-5px); /* Lift effect */
+}
+
+
+
+
+
+/* Footer */
+.loadingScreen__footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Divider */
+.loadingScreen__divider {
+  width: 80%;
+  border: 0;
+  border-top: 1px dotted #fff; /* Changed from solid to dotted */
+  margin: 2rem 0;
+}
+
+
+
 
 @media (max-width: 768px) {
-  .loadingScreen__content {
+  .loadingScreen__header {
     flex-direction: column;
-    align-items: center;
+    align-items: center; /* Center items horizontally */
+    padding-left: 0; /* Remove left padding on mobile */
   }
 
-  .loadingScreen__feature {
-    flex: 1 1 80%;
+  .loadingScreen__logo,
+  .loadingScreen__intro,
+  .loadingScreen__desc {
+    flex: 0 0 100%; /* Each section takes full width */
+    text-align: left; /* Center text for better appearance on mobile */
+    padding: 10px 0; /* Add vertical padding */
   }
 
-  .loadingScreen__feature__image {
-    max-height: 200px;
-  }
-}
-
-@media (max-width: 480px) {
-  .loadingScreen__title {
-    font-size: calc(1.5rem + 2vw);
+  .loadingScreen__desc {
+    justify-content: left; /* Center description text */
   }
 
+  .loadingScreen__intro {
+    padding: 0; /* Remove horizontal padding */
+  }
+
+  
   .loadingScreen__button {
-    font-size: 1.5rem;
-    padding: 10px 30px;
+    padding: 8px 25px;
+    font-size: 0.9rem;
+    top: 10px; /* Adjust spacing for smaller screens */
   }
-
-  .loadingScreen__feature__title {
-    font-size: calc(1rem + 1.5vw);
-  }
-
-  .loadingScreen__feature__description {
-    font-size: calc(0.9rem + 0.5vw);
-  }
-
-  .loadingScreen__feature__image {
-    max-height: 180px;
-  }
+  
 }

@@ -1,706 +1,791 @@
 import * as THREE from 'three';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
-
-import { useFrame, useLoader } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Html, useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
+import { Selection, Select, EffectComposer, Outline } from '@react-three/postprocessing';
 
-import { Selection, Select, EffectComposer, Outline } from '@react-three/postprocessing'
+export default function Train(props) {
+  // Load the GLTF model
+  const { nodes, materials, animations } = useGLTF("./Train/SpaceTrainV1.glb");
+
+  // Access camera and controls from the Three.js context
+  const { camera, controls } = useThree();
+
+  // Animation actions
+  const group = useRef();
+  const { actions } = useAnimations(animations, group);
+
+  // References to interactable objects
+  const interior = useRef();
+  const hide = useRef();
+  const door = useRef();
+  const terminal = useRef();
+  const projectScreen = useRef();
+  const exitMain = useRef();
+  const UOL = useRef();
+  const TrainProj = useRef();
+  const Datos = useRef();
+  const exterior = useRef()
+  const backToMain = useRef()
 
 
-export default function Train(props)
-{
-  //LOADING TRAIN
-  const { nodes, materials, animations} = useGLTF("./Train/SpaceTrainV1.glb");
+  // State variables
+  const [hoveredObject, setHoveredObject] = useState(null);
+  const [inTrain, setInTrain] = useState(false);
+  const [inTer, setInTer] = useState(false);
+  const [inProj, setInProj] = useState(false);
+  const [iframeVisible, setIframeVisible] = useState(false);
+  const [currentMaterial, setCurrentMaterial] = useState(null);
+  const [isExitMainVisible, setIsExitMainVisible] = useState(false);
+  const [isUOLVisible, setIsUOLVisible] = useState(false);
+  const [isBackToMainVisible, setIsBackToMainVisible] = useState(false);
 
-  const [hovering, setHovered] = useState(false)
+  // Keyboard controls
+  const [subscribeKeys, getKeys] = useKeyboardControls();
 
-  const [hovered, hover] = useState(null)
+  // Vector for camera adjustments
+  const vec = useRef(new THREE.Vector3());
 
+  // Reference to store the last camera position
+  const lastPos = useRef(new THREE.Vector3());
+
+  // Reference to store timer IDs for cleanup
+  const timers = useRef([]);
+
+  // Texture loader and materials
+  const textureLoader = new THREE.TextureLoader();
+
+  const UOLtexture = textureLoader.load('./Screen/UOFscreen.png');
+  UOLtexture.flipY = false;
+  const UOLmaterial = new THREE.MeshBasicMaterial({ map: UOLtexture });
+
+  const Datodostexture = textureLoader.load('./Screen/DatodosProj.png');
+  Datodostexture.flipY = false;
+  const Datodosmaterial = new THREE.MeshBasicMaterial({ map: Datodostexture });
+
+  const SpaceTraintexture = textureLoader.load('./Screen/SpaceTrain.png');
+  SpaceTraintexture.flipY = false;
+  const SpaceTrainmaterial = new THREE.MeshBasicMaterial({ map: SpaceTraintexture });
+
+  const MainScreenTexture = textureLoader.load('./Screen/ProjectScreenMain.png');
+  MainScreenTexture.flipY = false;
+  const MainScreenMaterial = new THREE.MeshBasicMaterial({ map: MainScreenTexture });
+
+  // Set initial material for project screen
   useEffect(() => {
-    document.body.style.cursor = hovering ? 'pointer' : 'auto'
-  }, [hovering])
-
-  const handleHover = (isHovering) => {
-    setHovered(isHovering);
-    hover(isHovering);  // Assuming 'hover' is a function that you want to call
-  };
-
-  //STATE DECLARATIONS
-    const [clicked, setClicked] = useState(false)
-
-    const [clickedTer, setClickedTer] = useState(false)
-
-    const [clickedProj, setClickedProj] = useState(false)
-
-    const [clickedExitProj, setClickedExitProj] = useState(false)
-
-    const [clickedExitTer, setClickedExitTer] = useState(false)
-
-    const [inTrain, setInTrain] = useState(false)
-
-    const [inTer, setInTer] = useState(false)
-
-    const [inProj, setInProj] = useState(false)
-
-    const [iframeVisible, setIframeVisible] = useState(false);
-
-    const [currentMaterial, setCurrentMaterial] = useState(null);
-
-    //REFERENCES TO OBJECTS 
-    const group = useRef()
-
-    const interior = useRef()
-
-    const hide = useRef()
-
-    const exterior = useRef()
-
-    const door = useRef()
-
-    const terminal = useRef()
-
-    const projectScreen = useRef()
-
-    const lastPos = useRef(new THREE.Vector3());
-
-    //OPEN DOOR
-    function goTrain(event)
-    {
-      event.stopPropagation()
-      setClicked(!clicked)
+    if (materials && materials.MonitorProject) {
+      setCurrentMaterial(materials.MonitorProject);
     }
+  }, [materials]);
 
-    //TERMINAL
-    function goTerminal(event)
-    {
-      event.stopPropagation()
-
-      setClickedTer(!clickedTer)
-
-      setTimeout(() => {
-        setInTer(true);
-      }, 5000);
-
-    }
-
-    function exitTerminal(event)
-    {
-      event.stopPropagation()
-      setClickedExitTer(!clickedExitTer)
-    }
-
-    
-
-    // Material creation
-
-    const textureLoader = new THREE.TextureLoader();
-
-    const UOLtexture = textureLoader.load('./Screen/UOFscreen.png');
-    UOLtexture.flipY = false
-    const UOLmaterial = new THREE.MeshBasicMaterial({ map: UOLtexture  });
-
-    const Datodostexture = textureLoader.load('./Screen/DatodosProj.png');
-    Datodostexture.flipY = false
-    const Datodosmaterial = new THREE.MeshBasicMaterial({ map: Datodostexture  });
-
-    const SpaceTraintexture = textureLoader.load('./Screen/SpaceTrain.png');
-    SpaceTraintexture.flipY = false
-    const SpaceTrainmaterial = new THREE.MeshBasicMaterial({ map: SpaceTraintexture  });
-
-    const MainScreenTexture = textureLoader.load('./Screen/ProjectScreenMain.png');
-    MainScreenTexture.flipY = false
-    const MainScreenMaterial = new THREE.MeshBasicMaterial({ map: MainScreenTexture  });
-
-
-
-    //SCREEN NAVIGATION
-    const backToMain = useRef()
-    const UOL = useRef()
-    const TrainProj = useRef()
-    const Datos = useRef()
-
-    const exitMain= useRef()
-
-    const [isExitMainVisible, setIsExitMainVisible] = useState(false);
-    const [isUOLVisible, setIsUOLVisible] = useState(false);
-    const [isBackToMainVisible, setIsBackToMainVisible] = useState(false);
-
-    //PROJECT SCREEN MATERIAL FUNCTIONS
-    useEffect(() => {
-      if (materials) {
-          setCurrentMaterial(materials.MonitorProject);
-      }
-    }, [materials]);
-    
-    const revertToOriginalMaterial = () => {
-      if (materials.MonitorProject) {
-        setCurrentMaterial(materials.MonitorProject);
-      } else {
-        console.error("MonitorProject material is not available");
-      }
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      timers.current.forEach(timer => clearTimeout(timer));
     };
+  }, []);
 
-    function goProj(event)
-    {
-    
-      event.stopPropagation()
-      setClickedProj(!clickedProj)
+  // Update cursor based on hover state
+  useEffect(() => {
+    document.body.style.cursor = hoveredObject ? 'pointer' : 'auto';
+  }, [hoveredObject]);
 
+  // Function to revert project screen material to original
+  const revertToOriginalMaterial = useCallback(() => {
+    if (materials && materials.MonitorProject) {
+      setCurrentMaterial(materials.MonitorProject);
+    } else {
+      console.error("MonitorProject material is not available");
     }
+  }, [materials]);
 
-    function exitProj(event)
-    {
+
+
+  // Camera control functions
+  const cameraChange = useCallback(() => {
+    controls.maxAzimuthAngle = Infinity;
+    controls.minAzimuthAngle = Infinity;
+    controls.maxPolarAngle = Math.PI;
+    controls.minPolarAngle = 0;
+    controls.enableZoom = false;
+
+    controls.enableRotate = true;
+    controls.enablePan = true;
+  }, [controls]);
+
+  const cameraChangeScreen = useCallback(() => {
+    controls.enableRotate = false;
+    controls.enablePan = false;
+  }, [controls]);
+
+
+
+
+  // Event handler to open the train door and enter train
+  const goTrain = useCallback((event) => {
+    event.stopPropagation();
+    if (!inTrain) {
+      // Play door open animation
+      if (actions.OpenDoor) {
+        actions.OpenDoor.setLoop(THREE.LoopOnce);
+        actions.OpenDoor.play();
+      }
+
+      // Get door position
+      const targetDoor = new THREE.Vector3();
+      door.current.updateMatrixWorld();
+      door.current.getWorldPosition(targetDoor);
+
+      // Store current camera position
+      camera.getWorldPosition(lastPos.current);
+
+      // Adjust camera controls
+      controls.minDistance = 0;
+
+      // Animate camera to door position
+      gsap.to(camera.position, {
+        duration: 1,
+        x: targetDoor.x - 1.5,
+        z: targetDoor.z,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 1,
+        x: targetDoor.x,
+        z: targetDoor.z,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Additional camera movements with delays
+      gsap.to(camera.position, {
+        duration: 1,
+        delay: 1,
+        x: targetDoor.x + 0.2,
+        z: targetDoor.z,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 1,
+        delay: 1,
+        x: targetDoor.x + 0.21,
+        z: targetDoor.z,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      gsap.to(camera.position, {
+        duration: 1,
+        delay: 1.5,
+        x: targetDoor.x + 0.2,
+        z: targetDoor.z,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 1,
+        delay: 1.5,
+        x: targetDoor.x + 0.21,
+        z: targetDoor.z + 0.025,
+        y: targetDoor.y + 0.11,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Change camera controls
+      cameraChange();
+
+      // Reset door animation
+      if (actions.OpenDoor) {
+        actions.OpenDoor.reset();
+      }
+
+      // Enter train after animations
+      timers.current.push(setTimeout(() => {
+        setInTrain(true);
+      }, 2000));
+    }
+  }, [inTrain, actions, camera, controls, cameraChange]);
+
+  
+  // Event handler to open the terminal and navigate to terminal view
+  const goTerminal = useCallback((event) => {
+    event.stopPropagation();
+    if (!inTer) {
+      // Store current camera position
+      camera.getWorldPosition(lastPos.current);
+
+      // Get terminal position
+      const targetTer = new THREE.Vector3();
+      terminal.current.getWorldPosition(targetTer);
+
+      // Adjust target position
+      vec.current.set(targetTer.x, targetTer.y, targetTer.z - 0.15);
+
+      // Animate camera to terminal
+      gsap.to(camera.position, {
+        duration: 4,
+        x: targetTer.x,
+        z: targetTer.z - 0.15,
+        y: targetTer.y + 0.05,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 3,
+        x: targetTer.x,
+        z: targetTer.z,
+        y: targetTer.y + 0.03,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Show iframe
+      setIframeVisible(true);
+
+      // Change camera controls
+      cameraChangeScreen();
+
+      // Enter terminal view
+      setInTer(true);
+    }
+  }, [inTer, camera, controls, cameraChangeScreen]);
+
+  // Event handler to exit the terminal and return to previous view
+  const exitTerminalHandler = useCallback((event) => {
+    event.stopPropagation();
+    if (inTer) {
+      // Animate camera back to last position
+      gsap.to(camera.position, {
+        duration: 2,
+        x: lastPos.current.x,
+        z: lastPos.current.z,
+        y: lastPos.current.y,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 2,
+        x: lastPos.current.x,
+        z: lastPos.current.z + 0.025,
+        y: lastPos.current.y,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Hide iframe
+      setIframeVisible(false);
+
+      // Change camera controls
+      cameraChange();
+
+      // Exit terminal view
+      setInTer(false);
+    }
+  }, [inTer, camera, controls, cameraChange]);
+
+
+
+
+
+
+  const openMain = useCallback(() => {
+    if (MainScreenMaterial) {
+      setCurrentMaterial(MainScreenMaterial);
+      setIsBackToMainVisible(false);
+      setIsExitMainVisible(true);
+      setIsUOLVisible(true);
+    }
+  }, [MainScreenMaterial]);
+
+  // Event handler to open UOL project
+  const openUOLHandler = useCallback((event) => {
+    event.stopPropagation();
+    if (UOLmaterial) {
+      setCurrentMaterial(UOLmaterial);
+      setIsBackToMainVisible(true);
+      setIsExitMainVisible(false);
+      setIsUOLVisible(false);
+    }
+  }, [UOLmaterial]);
+
+  // Event handler to open Space Train project
+  const openTrainHandler = useCallback((event) => {
+    event.stopPropagation();
+    if (SpaceTrainmaterial) {
+      setCurrentMaterial(SpaceTrainmaterial);
+      setIsBackToMainVisible(true);
+      setIsExitMainVisible(false);
+      setIsUOLVisible(false);
+    }
+  }, [SpaceTrainmaterial]);
+
+  // Event handler to open Datodos project
+  const openDatoHandler = useCallback((event) => {
+    event.stopPropagation();
+    if (Datodosmaterial) {
+      setCurrentMaterial(Datodosmaterial);
+      setIsBackToMainVisible(true);
+      setIsExitMainVisible(false);
+      setIsUOLVisible(false);
+    }
+  }, [Datodosmaterial]);
+
+  // Event handler to open main project screen
+  const openMainHandler = useCallback(() => {
+    if (MainScreenMaterial) {
+      setCurrentMaterial(MainScreenMaterial);
+      setIsBackToMainVisible(false);
+      setIsExitMainVisible(true);
+      setIsUOLVisible(true);
+    }
+  }, [MainScreenMaterial]);
+
+  // Unified hover handler
+  const handleHover = useCallback((objectName) => {
+    setHoveredObject(objectName);
+  }, []);
+
+
+
+
+  
+  // Event handler to navigate to the project screen
+  const goProj = useCallback((event) => {
+    event.stopPropagation();
+    if (!inProj) {
+      // Store current camera position
+      camera.getWorldPosition(lastPos.current);
+
+      // Get project screen position
+      const targetProj = new THREE.Vector3();
+      projectScreen.current.getWorldPosition(targetProj);
+
+      // Adjust target position
+      vec.current.set(targetProj.x, targetProj.y, targetProj.z);
+
+      // Animate camera to project screen
+      gsap.to(camera.position, {
+        duration: 2,
+        x: targetProj.x - 0.3,
+        z: targetProj.z,
+        y: targetProj.y,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 1.5,
+        x: targetProj.x - 0.1,
+        z: targetProj.z,
+        y: targetProj.y,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Change camera controls
+      cameraChangeScreen();
+
+      // Open main screen
+      openMain();
+
+      // Show exit and UOL buttons
+      setIsExitMainVisible(true);
+      setIsUOLVisible(true);
+
+      // Enter project view after animations
+      
+      setInProj(true);
+     
+    }
+  }, [inProj, camera, controls, projectScreen, cameraChangeScreen, openMain]);
+
+  // Event handler to exit the project screen and return to main view
+  const exitProjHandler = useCallback((event) => {
+    event.stopPropagation();
+    if (inProj) {
+      // Animate camera back to last position
+      gsap.to(camera.position, {
+        duration: 2,
+        x: lastPos.current.x,
+        z: lastPos.current.z,
+        y: lastPos.current.y,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      });
+
+      gsap.to(controls.target, {
+        duration: 2,
+        x: lastPos.current.x,
+        z: lastPos.current.z + 0.025,
+        y: lastPos.current.y,
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+
+      // Change camera controls
+      cameraChange();
+
+      revertToOriginalMaterial();
+
       setIsExitMainVisible(false);
       setIsUOLVisible(false);
       setIsBackToMainVisible(false);
-      setClickedExitProj(true)
-      
-      event.stopPropagation()
 
+      // Exit project view
+      setInProj(false);
     }
+  }, [inProj, camera, controls, cameraChange, revertToOriginalMaterial]);
 
-    function openUOL(event)
-    {
-      if (UOLmaterial) {
-        setCurrentMaterial(UOLmaterial);
-        setIsBackToMainVisible(true);
-        setIsExitMainVisible(false);
-        setIsUOLVisible(false);
 
-      } 
-      event.stopPropagation()
+
+
+  // Movement logic handled in useFrame
+  useFrame(() => {
+    const { forward, backward } = getKeys();
+
+    if (!inProj && !inTer && inTrain) {
+      // Forward movement
+      if (forward && interior.current.position.z > -60) {
+        gsap.to(interior.current.position, {
+          duration: 0.1,
+          x: interior.current.position.x,
+          z: interior.current.position.z - 0.4,
+          y: interior.current.position.y,
+        });
+      }
+
+      if (forward && interior.current.position.z <= -30 && interior.current.position.z >= -45) {
+        gsap.to(interior.current.position, {
+          duration: 0.1,
+          x: interior.current.position.x,
+          z: interior.current.position.z - 0.4,
+          y: interior.current.position.y - 0.17,
+        });
+      }
+
+      // Backward movement
+      if (backward && interior.current.position.z < 32) {
+        gsap.to(interior.current.position, {
+          duration: 0.1,
+          x: interior.current.position.x,
+          z: interior.current.position.z + 0.4,
+          y: interior.current.position.y,
+        });
+      }
+
+      if (backward && interior.current.position.z <= -30 && interior.current.position.z >= -45) {
+        gsap.to(interior.current.position, {
+          duration: 0.1,
+          x: interior.current.position.x,
+          z: interior.current.position.z + 0.4,
+          y: interior.current.position.y + 0.17,
+        });
+      }
     }
+  });
 
-    function openTrain(event)
-    {
-      if (SpaceTrainmaterial) {
-        setCurrentMaterial(SpaceTrainmaterial);
-        setIsBackToMainVisible(true);
-        setIsExitMainVisible(false);
-        setIsUOLVisible(false);
-        
-      } 
-      event.stopPropagation()
-    }
-
-    function openDato(event)
-    {
-      if (Datodosmaterial) {
-        setCurrentMaterial(Datodosmaterial);
-        setIsBackToMainVisible(true);
-        setIsExitMainVisible(false);
-        setIsUOLVisible(false);
-        
-      } 
-      event.stopPropagation()
-    }
-
-    function openMain()
-    {
-      if (MainScreenMaterial) {
-        setCurrentMaterial(MainScreenMaterial);
-
-        setIsBackToMainVisible(false);
-        setIsExitMainVisible(true);
-        setIsUOLVisible(true);
-        
-      } 
-    }
-
-
-    //CAMERA MANIPULATION
-    function cameraChange(state)
-    {
-      state.controls.maxAzimuthAngle = Infinity
-      state.controls.minAzimuthAngle = Infinity
-      state.controls.maxPolarAngle = Math.PI
-      state.controls.minPolarAngle = 0
-      state.controls.enableZoom = false
-
-      state.controls.enableRotate = true
-      state.controls.enablePan = true
-    }
-
-    function cameraChangeScreen(state)
-    {
-      state.controls.enableRotate = false
-      state.controls.enablePan = false
-    }
-
+  return (
+        <group {...props} dispose={null} ref={group}>
+          <group name="Interior" ref={interior}>
     
-    if (!materials || !nodes) {
-      return <div>Loading...</div>;
-    }
-
-    const [subscribeKeys, getKeys] = useKeyboardControls()
-
-
-    const { actions } = useAnimations(animations, group)
-
-    const [vec] = useState(() => new THREE.Vector3())
-
-    //USEFRAME LOOP
-    useFrame(state => {
-        const { forward, backward} = getKeys()
-
-        //DOOR OPEN
-        if(clicked && !inTrain)
-        {
-            actions.OpenDoor.setLoop(THREE.LoopOnce)
-
-            actions.OpenDoor.play()
-
-            var targetDoor = new THREE.Vector3();
-
-            door.current.updateMatrixWorld()
-
-            door.current.getWorldPosition( targetDoor );
-
-            state.controls.minDistance = 0
-
-            gsap.to(state.camera.position, {duration:1, x: targetDoor.x - 1.5 , z: targetDoor.z, y: targetDoor.y + 0.11 })
-            gsap.to(state.controls.target, {duration:1, x: targetDoor.x   , z: targetDoor.z , y: targetDoor.y + 0.11 })
-
-            gsap.to(state.camera.position, {duration:1, delay:1, x: targetDoor.x + 0.2 , z: targetDoor.z , y: targetDoor.y + 0.11})
-            gsap.to(state.controls.target, {duration:1, delay:1, x: targetDoor.x + 0.21 , z: targetDoor.z  , y: targetDoor.y + 0.11})
-
-            gsap.to(state.camera.position, {duration:1, delay:1.5, x: targetDoor.x + 0.2 , z: targetDoor.z  , y: targetDoor.y + 0.11})
-            gsap.to(state.controls.target, {duration:1, delay:1.5, x: targetDoor.x + 0.21 , z: targetDoor.z + 0.025 , y: targetDoor.y + 0.11})
-
-            cameraChange(state)
-
-            actions.OpenDoor.reset()
-
-            setClicked(!clicked)
-
-            setTimeout(() => {
-              setInTrain(true);
-            }, 2000);
-
-        }
-
-        
-        //TERMINAL
-        if(clickedTer)
-        {
-          var targetTer = new THREE.Vector3(); 
-
-          state.camera.getWorldPosition(lastPos.current)
-
-          terminal.current.getWorldPosition( targetTer );
-
-          vec.set(targetTer.x, targetTer.y, targetTer.z - 0.15)
-
-          console.log(targetTer)
-
-          gsap.to(state.camera.position, {duration:4,  x:targetTer.x, z: targetTer.z - 0.15, y: targetTer.y + 0.05 })
-          gsap.to(state.controls.target, {duration:3,  x:targetTer.x, z: targetTer.z, y: targetTer.y + 0.03 })
-
-          setIframeVisible(true)
-          
-          setClickedTer(false)
-
-          cameraChangeScreen(state)
-
-        }
-
-
-        if(inTer)
-        {
-          console.log(state.pointer.x)
-          
-          //state.camera.position.lerp(vec.set(state.mouse.x * 5, 3 + state.mouse.y * 2, 14), 0.05)
-
-          if(clickedExitTer )
-          {
-            gsap.to(state.camera.position, {duration:2, x: lastPos.current.x, z:lastPos.current.z, y: lastPos.current.y})
-            gsap.to(state.controls.target, {duration:2, x: lastPos.current.x, z: lastPos.current.z + 0.025, y: lastPos.current.y})
-
-            setIframeVisible(false)
-
-            cameraChange(state)
-
-            setClickedExitTer(!clickedExitTer)
-
-            setInTer(false)
-          }
-        }
-        
-
-        //PROJECT
-        if(clickedProj)
-        {
-          if (!inProj){
-            var targetProj = new THREE.Vector3();
-
-            state.camera.getWorldPosition(lastPos.current)
-
-            projectScreen.current.getWorldPosition( targetProj );
-
-            vec.set(targetProj.x - 0.3, targetProj.y , targetProj.z )
-
-            gsap.to(state.camera.position, {duration:2,  x:targetProj.x - 0.3, z: targetProj.z , y: targetProj.y  })
-            gsap.to(state.controls.target, {duration:1.5,  x:targetProj.x, z: targetProj.z  , y: targetProj.y  })
-
-            cameraChangeScreen(state)
-
-            openMain()
-
-            setIsExitMainVisible(true);
-
-            setIsUOLVisible(true);
-
-            setTimeout(() => {
-              setInProj(true);
-            }, 2000);
-
-          }
-
-          setClickedProj(false)
-
-        }
-
-        if (inProj)
-        {
-          gsap.to(state.camera.position, {duration:0.05, x:vec.x  , z: vec.z - state.pointer.x * 0.03, y: vec.y- state.pointer.y * 0.03 })
-
-          if(clickedExitProj)
-          {
-            gsap.to(state.camera.position, {duration:2, x: lastPos.current.x, z:lastPos.current.z, y: lastPos.current.y})
-            gsap.to(state.controls.target, {duration:2, x: lastPos.current.x, z: lastPos.current.z + 0.025, y: lastPos.current.y})
-
-            cameraChange(state)
-
-            revertToOriginalMaterial()
-
-            setClickedExitProj(false)
-
-            setInProj(false)
-
-          }
-        }
-        
-        //MOVEMENT
-        if(!inProj && !inTer && inTrain)
-        {
-          //FORWARD
-          if(forward && interior.current.position.z > -60 )
-          {
-            gsap.to(interior.current.position, {duration:0.1, x:interior.current.position.x , z:interior.current.position.z - 0.4 , y:interior.current.position.y })
-          }
-          
-          if (forward && interior.current.position.z <= -30 && interior.current.position.z >= -45  )
-          {
-            gsap.to(interior.current.position, {duration:0.1, x:interior.current.position.x , z:interior.current.position.z - 0.4, y: interior.current.position.y - 0.17 })
-          }
-
-          //BACKWARD
-          if(backward && interior.current.position.z < 32)
-          {
-            gsap.to(interior.current.position, {duration:0.1, x:interior.current.position.x , z:interior.current.position.z + 0.4 , y:interior.current.position.y })
-          }
-  
-          if(backward && interior.current.position.z <= -30 && interior.current.position.z >= -45 )
-          {
-            gsap.to(interior.current.position, {duration:0.1, x:interior.current.position.x , z:interior.current.position.z + 0.4, y: interior.current.position.y + 0.17 })
-          }
-        }
-    })
-  
-    return (
-      <group {...props} dispose={null} ref={group}>
-        <group name="Interior" ref={interior}>
-
-          {/* HIDE OBJECTS WHEN OUTSIDE */}
-          {inTrain && (
-            <group name="Hide" ref={hide}>
-              <mesh
-                name="ControlWalls"
-                geometry={nodes.ControlWalls.geometry}
-                material={materials.ControlWalls}
-                position={[-0.3121, 2.05338, 69.48592]}
-                scale={0.19111}
-              />
-              <mesh
-                name="ControlObjects"
-                geometry={nodes.ControlObjects.geometry}
-                material={materials.ControlObjects}
-                position={[-3.28297, 8.44685, 71.84576]}
-                rotation={[1.57453, -0.00001, Math.PI / 2]}
-                scale={0.13227}
-              />
-            </group>
-          )}
-
-          {/* INTERACTABLES */}
-          <group name="Interact">
-  
-            {/* TERMINAL BODY AND IFRAME */}
-            <group>
-              <group position={[-4.33, 9.30, 73.2]} rotation={[0, 180 * (Math.PI / 180), 0]}
-                style={{ overflow: 'hidden' }}>
+            {/* Hide Objects When Outside */}
+            {inTrain && (
+              <group name="Hide" ref={hide}>
+                <mesh
+                  name="ControlWalls"
+                  geometry={nodes.ControlWalls.geometry}
+                  material={materials.ControlWalls}
+                  position={[-0.3121, 2.05338, 69.48592]}
+                  scale={0.19111}
+                />
+                <mesh
+                  name="ControlObjects"
+                  geometry={nodes.ControlObjects.geometry}
+                  material={materials.ControlObjects}
+                  position={[-3.28297, 8.44685, 71.84576]}
+                  rotation={[1.57453, -0.00001, Math.PI / 2]}
+                  scale={0.13227}
+                />
+              </group>
+            )}
+    
+            {/* Interactables */}
+            <group name="Interact">
+    
+              {/* Terminal Body and Iframe */}
+              <group>
+                <group
+                  position={[-4.33, 9.30, 73.2]}
+                  rotation={[0, Math.PI, 0]}
+                  style={{ overflow: 'hidden' }}
+                >
                   {iframeVisible && (
-                    <Html 
-                            occlude="blending"
-                            transform 
-                            scale={0.07}
-                            fullscreen='true'> 
-                            
-                        <iframe 
-                            style={{
-                                width: '1060px', 
-                                height: '900px', 
-                                border: 'none',
-                            }}
-                    
-                            src='https://terminal-inner-website.vercel.app/'/> 
+                    <Html
+                      occlude="blending"
+                      transform
+                      scale={0.07}
+                      fullscreen
+                    >
+                      <iframe
+                        style={{
+                          width: '1060px',
+                          height: '900px',
+                          border: 'none',
+                        }}
+                        src='https://terminal-inner-website.vercel.app/'
+                      />
                     </Html>
                   )}
+                </group>
               </group>
-            </group>
-  
-            {/* HIGHLIGHT CLICKABLES                   */}
-            <Selection>
-              <EffectComposer autoClear={false}>
-                <Outline visibleEdgeColor="white" hiddenEdgeColor="white" blur width={1000} edgeStrength={100} />
-              </EffectComposer>
-  
-              <group name="Interactables" onPointerOver={(e) => hover(e.object.parent.name)} onPointerOut={(e) => hover(null)}>
-                {inTrain && (
-                  <group name="inside">
-                      {/* PROJECT SCREEN */}
-                      <Select name="ProjectsScreen_3" enabled={hovered === "ProjectsScreen_3"}>
-                          <mesh
-                            ref={projectScreen}
-                            position={[5.6097, 4.73113, 15.96946]}
-                            rotation={[0, 0, -Math.PI / 2]}
-                            scale={0.93778}
-                            name="ProjectsScreen_3"
-                            geometry={nodes.ProjectsScreen_3.geometry}
-                            material={currentMaterial}
-                            onPointerOver={() => hover(true)}
-                            onPointerOut={() => handleHover(false)}
-  
-                            onClick={ (event) =>
-                                  {
-                                  goProj(event)
-                                  }
-                            }
-                          />
-                          
-                      </Select>
-                      
-                      {/* TERMINAL DISPLAY */}
-                      <Select name="DisplayTerminal" enabled={hovered === "DisplayTerminal"}>
+    
+              {/* Highlight Clickable Objects */}
+              <Selection>
+                <EffectComposer autoClear={false}>
+                  <Outline
+                    visibleEdgeColor="white"
+                    hiddenEdgeColor="white"
+                    blur
+                    width={1000}
+                    edgeStrength={100}
+                  />
+                </EffectComposer>
+    
+                <group
+                  name="InteractablesGroup"
+                  onPointerOver={(e) => handleHover(e.object.parent.name)}
+                  onPointerOut={() => handleHover(null)}
+                >
+                  {inTrain && (
+                    <group name="InsideInteractables">
+                      {/* Project Screen */}
+                      <Select name="ProjectsScreen_3" enabled={hoveredObject === "ProjectsScreen_3"}>
                         <mesh
-                          ref = { terminal }
+                          ref={projectScreen}
+                          position={[5.6097, 4.73113, 15.96946]}
+                          rotation={[0, 0, -Math.PI / 2]}
+                          scale={0.93778}
+                          name="ProjectsScreen_3"
+                          geometry={nodes.ProjectsScreen_3.geometry}
+                          material={currentMaterial}
+                          onPointerOver={() => handleHover("ProjectsScreen_3")}
+                          onPointerOut={() => handleHover(null)}
+                          onClick={goProj}
+                        />
+                      </Select>
+    
+                      {/* Terminal Display */}
+                      <Select name="DisplayTerminal" enabled={hoveredObject === "DisplayTerminal"}>
+                        <mesh
+                          ref={terminal}
                           name="DisplayTerminal"
                           geometry={nodes.DisplayTerminal.geometry}
                           material={materials.Terminal}
                           position={[-4.27581, 8.33239, 73.72633]}
                           rotation={[-Math.PI, 0, -Math.PI]}
                           scale={1.16246}
-                          onPointerOver={() => hover(true)}
-                          onPointerOut={() => handleHover(false)}
-                          onClick={ (event) =>
-                          {
-                              goTerminal(event)
-                          }
-                          }
+                          onPointerOver={() => handleHover("DisplayTerminal")}
+                          onPointerOut={() => handleHover(null)}
+                          onClick={goTerminal}
                         />
-                      </Select>   
-                          
-                      <Select name="AboutMeScreen" enabled={hovered === "AboutMeScreen" }>
-                          <mesh
-                            name="AboutMeScreen"
-                            geometry={nodes.AboutMeScreen.geometry}
-                            material={materials.FilmScreen}
-                            position={[-0.3121, 2.05338, 69.48592]}
-                            scale={0.19111}
-                            onPointerOver={() => hover(true)}
-                            onPointerOut={() => handleHover(false)}
-                          />
                       </Select>
-                      <Select name="ButtonTerminal" enabled={hovered === "ButtonTerminal" }>
-                        {inTer && (
-                          <mesh 
-                            name = "ButtonTerminal"
-                            onPointerOver={() => setHovered(true)}
-                            onPointerOut={() => setHovered(false)}
-                            onClick={ (event) =>
-                              {
-                                  exitTerminal(event)
-                              }
-                            }
-                            position={[-5.38581, 8.355, 72.52633]}
-                            scale={0.05}>
-                              <cylinderGeometry
-                                attach="geometry"
-                                args={[1, 1, 1, 10]}
-                              />
-                              <meshStandardMaterial attach="material" color="red" />
-                          </mesh>)}
-                      </Select>
-                  </group>
-                )}
-  
-                <group
-                  name="DoorRight"
-                  position={[-5.77522, 3.42571, 3.83667]}
-                  rotation={[Math.PI / 2, 0, -Math.PI]}
-                  scale={[0.90375, 0.90375, 0.9559]}>
-                    <Select name="DoorRight_1" enabled={hovered === "DoorRight_1" } >
+    
+                      {/* About Me Screen */}
+                      <Select name="AboutMeScreen" enabled={hoveredObject === "AboutMeScreen"}>
                         <mesh
-                          ref ={door}
-                          name="DoorRight_1"
-                          geometry={nodes.DoorRight_1.geometry}
-                          material={materials.DoorMetal}
-                          onPointerOver={() => handleHover(true)}
-                          onPointerOut={() => handleHover(false)}
-                          onClick={ (event) =>
-                            {
-                                goTrain(event)
-                            }
-                          }
+                          name="AboutMeScreen"
+                          geometry={nodes.AboutMeScreen.geometry}
+                          material={materials.FilmScreen}
+                          position={[-0.3121, 2.05338, 69.48592]}
+                          scale={0.19111}
+                          onPointerOver={() => handleHover("AboutMeScreen")}
+                          onPointerOut={() => handleHover(null)}
                         />
                       </Select>
-                  <mesh
-                    name="DoorRight_2"
-                    geometry={nodes.DoorRight_2.geometry}
-                    material={materials.GlowRed}
-                  />
-                </group>
-              </group>
-            </Selection>
-  
-              
-            {/* PROJECTS SCREEN HITBOXES*/}
-            {inProj && (
-              <group name="Hitboxes">
-                {isExitMainVisible && (
-                  <mesh
-                    ref={exitMain}
-                    name="ExitMain"
-                    
-                    geometry={new THREE.BoxGeometry(0.6,0.6,0.6)}
-                    material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
-                    position={[5.884, 3.2, 13.25]}
-                    onPointerOver={() => setHovered(true)}
-                    onPointerOut={() => setHovered(false)}
-                    onClick={ (event) =>
-                      {
-                        exitProj(event)
-                      }
-                    }
-                  />
-                )}
-  
-                {isUOLVisible && (
-                  <group>
+    
+                      {/* Exit Terminal Button */}
+                      <Select name="ButtonTerminal" enabled={hoveredObject === "ButtonTerminal"}>
+                        {inTer && (
+                          <mesh
+                            name="ButtonTerminal"
+                            onPointerOver={() => handleHover("ButtonTerminal")}
+                            onPointerOut={() => handleHover(null)}
+                            onClick={exitTerminalHandler}
+                            position={[-5.38581, 8.355, 72.52633]}
+                            scale={0.05}
+                          >
+                            <cylinderGeometry
+                              attach="geometry"
+                              args={[1, 1, 1, 10]}
+                            />
+                            <meshStandardMaterial attach="material" color="red" />
+                          </mesh>
+                        )}
+                      </Select>
+                    </group>
+                  )}
+    
+                  {/* Door Interactable */}
+                  <group
+                    name="DoorRight"
+                    position={[-5.77522, 3.42571, 3.83667]}
+                    rotation={[Math.PI / 2, 0, -Math.PI]}
+                    scale={[0.90375, 0.90375, 0.9559]}
+                  >
+                    <Select name="DoorRight_1" enabled={hoveredObject === "DoorRight_1"}>
+                      <mesh
+                        ref={door}
+                        name="DoorRight_1"
+                        geometry={nodes.DoorRight_1.geometry}
+                        material={materials.DoorMetal}
+                        onPointerOver={() => handleHover("DoorRight_1")}
+                        onPointerOut={() => handleHover(null)}
+                        onClick={goTrain}
+                      />
+                    </Select>
                     <mesh
-                      ref={UOL}
-                      name="UOL"
-                      
-                      geometry={new THREE.BoxGeometry(0.9,0.9,0.9)}
-                      material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
-                      position={[5.884, 5.2, 14]}
-                      onPointerOver={() => setHovered(true)}
-                      onPointerOut={() => setHovered(false)}
-                      onClick={ (event) =>
-                        {
-                          openUOL(event)
-                        }
-                      }
-                    />
-                    <mesh
-                      ref={TrainProj}
-                      name="UOL"
-                      
-                      geometry={new THREE.BoxGeometry(1,1,1)}
-                      material={new THREE.MeshBasicMaterial({opacity: 0, transparent: true  })}
-                      position={[5.884, 5.2, 16]}
-                      onPointerOver={() => setHovered(true)}
-                      onPointerOut={() => setHovered(false)}
-                      onClick={ (event) =>
-                        {
-                          openTrain(event)
-                        }
-                      }
-                    />
-                    <mesh
-                      ref={Datos}
-                      name="Datos"
-                      
-                      geometry={new THREE.BoxGeometry(0.9,0.9,0.9)}
-                      material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
-                      position={[5.884, 5.2, 18]}
-                      onPointerOver={() => setHovered(true)}
-                      onPointerOut={() => setHovered(false)}
-                      onClick={ (event) =>
-                        {
-                          openDato(event)
-                        }
-                      }
+                      name="DoorRight_2"
+                      geometry={nodes.DoorRight_2.geometry}
+                      material={materials.GlowRed}
                     />
                   </group>
-                )}
-  
-                {isBackToMainVisible && (
-                  <mesh
-                    ref={backToMain}
-                    name="BackToMain"
-                    
-                    geometry={new THREE.BoxGeometry(0.7,0.7,0.7)}
-                    material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
-                    position={[5.884, 6.2, 17.65]}
-                    onPointerOver={() => setHovered(true)}
-                    onPointerOut={() => setHovered(false)}
-                    onClick={ () =>
-                      {
-                        openMain()
-                      }
-                    }
-                  />
-                )}
-  
+                </group>
+              </Selection>
+    
+              {/* Project Screen Hitboxes */}
+              {inProj && (
+                <group name="Hitboxes">
+                  {isExitMainVisible && (
+                    <mesh
+                      ref={exitMain}
+                      name="ExitMain"
+                      geometry={new THREE.BoxGeometry(0.6, 0.6, 0.6)}
+                      material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
+                      position={[5.884, 3.2, 13.25]}
+                      onPointerOver={() => handleHover("ExitMain")}
+                      onPointerOut={() => handleHover(null)}
+                      onClick={exitProjHandler}
+                    />
+                  )}
+    
+                  {isUOLVisible && (
+                    <group>
+                      {/* UOL Project */}
+                      <mesh
+                        ref={UOL}
+                        name="UOL"
+                        geometry={new THREE.BoxGeometry(0.9, 0.9, 0.9)}
+                        material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
+                        position={[5.884, 5.2, 14]}
+                        onPointerOver={() => handleHover("UOL")}
+                        onPointerOut={() => handleHover(null)}
+                        onClick={openUOLHandler}
+                      />
+    
+                      {/* Space Train Project */}
+                      <mesh
+                        ref={TrainProj}
+                        name="SpaceTrain"
+                        geometry={new THREE.BoxGeometry(1, 1, 1)}
+                        material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
+                        position={[5.884, 5.2, 16]}
+                        onPointerOver={() => handleHover("SpaceTrain")}
+                        onPointerOut={() => handleHover(null)}
+                        onClick={openTrainHandler}
+                      />
+    
+                      {/* Datodos Project */}
+                      <mesh
+                        ref={Datos}
+                        name="Datos"
+                        geometry={new THREE.BoxGeometry(0.9, 0.9, 0.9)}
+                        material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
+                        position={[5.884, 5.2, 18]}
+                        onPointerOver={() => handleHover("Datos")}
+                        onPointerOut={() => handleHover(null)}
+                        onClick={openDatoHandler}
+                      />
+                    </group>
+                  )}
+    
+                  {isBackToMainVisible && (
+                    <mesh
+                      ref={backToMain}
+                      name="BackToMain"
+                      geometry={new THREE.BoxGeometry(0.7, 0.7, 0.7)}
+                      material={new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })}
+                      position={[5.884, 6.2, 17.65]}
+                      onPointerOver={() => handleHover("BackToMain")}
+                      onPointerOut={() => handleHover(null)}
+                      onClick={openMainHandler}
+                    />
+                  )}
+                </group>
+              )}
+    
+              {/* Project Screens Group */}
+              <group
+                name="ProjectsScreen"
+                position={[5.6097, 4.73113, 15.96946]}
+                rotation={[0, 0, -Math.PI / 2]}
+                scale={0.93778}
+              >
+                <mesh
+                  name="ProjectsScreen_1"
+                  geometry={nodes.ProjectsScreen_1.geometry}
+                  material={materials.MainScreen}
+                />
+                <mesh
+                  name="ProjectsScreen_2"
+                  geometry={nodes.ProjectsScreen_2.geometry}
+                  material={materials.UOLScreen}
+                />
+                <mesh
+                  name="ProjectsScreen_3"
+                  geometry={nodes.ProjectsScreen_3.geometry}
+                  material={currentMaterial} // Dynamic material
+                />
+                <mesh
+                  name="ProjectsScreen_4"
+                  geometry={nodes.ProjectsScreen_4.geometry}
+                  material={materials.SpaceTrain}
+                />
+                <mesh
+                  name="ProjectsScreen_5"
+                  geometry={nodes.ProjectsScreen_5.geometry}
+                  material={materials.Datodos}
+                />
               </group>
-            )}
-  
-            {/* Project Screens */}
-            <group
-              name="ProjectsScreen"
-              position={[5.6097, 4.73113, 15.96946]}
-              rotation={[0, 0, -Math.PI / 2]}
-              scale={0.93778}>
-              <mesh
-                name="ProjectsScreen_1"
-                geometry={nodes.ProjectsScreen_1.geometry}
-                material={materials.MainScreen}
-              />
-              <mesh
-                name="ProjectsScreen_2"
-                geometry={nodes.ProjectsScreen_2.geometry}
-                material={materials.UOLScreen}
-              />
-              <mesh
-                name="ProjectsScreen_3"
-                geometry={nodes.ProjectsScreen_3.geometry}
-                material={materials.MonitorProject}
-              />
-              <mesh
-                name="ProjectsScreen_4"
-                geometry={nodes.ProjectsScreen_4.geometry}
-                material={materials.SpaceTrain}
-              />
-              <mesh
-                name="ProjectsScreen_5"
-                geometry={nodes.ProjectsScreen_5.geometry}
-                material={materials.Datodos}
-              />
+    
             </group>
-
-          </group>
           
   
           {/* TRAIN HEAD */}

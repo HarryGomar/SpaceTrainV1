@@ -1,26 +1,29 @@
-import { useRef } from 'react'
-import * as THREE from 'three'
-import { OrbitControls, useHelper , Html} from '@react-three/drei'
-import { Perf } from 'r3f-perf'
-import Train from './Train.jsx'
-import SpaceBox from './SpaceBox.jsx'
+// Experience.jsx
+import React from 'react';
+import { OrbitControls } from '@react-three/drei';
+import Train from './Train.jsx';
+import SpaceBox from './SpaceBox.jsx';
 
+export default function Experience({ started }) {
+    return (
+        <>
+            {started && (
+                <OrbitControls
+                    makeDefault
+                    panSpeed={0.1}
+                    minAzimuthAngle={-2.3}  // Corrected from array to number
+                    maxAzimuthAngle={0}      // Corrected from array to number
+                    maxDistance={9}
+                    minDistance={3}
+                    maxPolarAngle={1.7}      // Corrected from array to number
+                />
+            )}
 
-export default function Experience()
-{
-    
-    return <>
-    
-        {/* <Perf position="top-left"/> */}
+            <SpaceBox />
 
-        <OrbitControls makeDefault panSpeed={0.1} minAzimuthAngle={[-2.3]}  maxAzimuthAngle={[0]} maxDistance={9} minDistance={3} maxPolarAngle={[1.7]}  />
+            <ambientLight intensity={1} />
 
-        <SpaceBox/>
-
-        <ambientLight intensity={ 1 } />
-
-        <Train scale={0.04}  position= { [ 0, 0, -1]} />
-
-
-    </>
+            <Train scale={0.04} position={[0, 0, -1]} />
+        </>
+    );
 }
